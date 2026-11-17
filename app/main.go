@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -30,22 +29,23 @@ func main() {
 			fmt.Println("Error appecpting connections:", err)
 			break
 		}
-		
+
+		// passes the connection string to handleconn goroutine
 		go handleConn(conn) // one goroutine per client
 	}
 }
 
-func handleConn(conn net.Conn){
+func handleConn(conn net.Conn) {
 	defer conn.Close()
 
 	buf := make([]byte, 1024)
-	for(
+	for {
 		n, err := conn.Read(buf)
-		if err != nil{
+		if err != nil {
 			return
 		}
 
-		_ =buf[:n]
+		_ = buf[:n]
 		conn.Write([]byte("+PONG\r\n"))
-	)
+	}
 }
