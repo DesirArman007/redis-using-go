@@ -31,9 +31,6 @@ func main() {
 		if err != nil {
 			break
 		}
-		conn.Write([]byte("+PING\r\n"))
-
+		conn.Write([]byte("+PONG\r\n"))
 	}
-
-	conn.Write([]byte("+PONG\r\n"))
 }
