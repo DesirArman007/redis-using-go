@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -21,16 +22,30 @@ func main() {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
 	}
-
-	conn, err := l.Accept()
-
-	buf := make([]byte, 1024)
+	defer l.Close()
 
 	for {
-		_, err := conn.Read(buf)
+		conn, err := l.Accept()
 		if err != nil {
+			fmt.Println("Error appecpting connections:", err)
 			break
 		}
-		conn.Write([]byte("+PONG\r\n"))
+		
+		go handleConn(conn) // one goroutine per client
 	}
+}
+
+func handleConn(conn net.Conn){
+	defer conn.Close()
+
+	buf := make([]byte, 1024)
+	for(
+		n, err := conn.Read(buf)
+		if err != nil{
+			return
+		}
+
+		_ =buf[:n]
+		conn.Write([]byte("+PONG\r\n"))
+	)
 }
