@@ -37,6 +37,7 @@ func DecodeRESP(data []byte) (interface{}, int, error) {
 	case '$':
 		return decodeBulkString(data)
 	default:
+		return nil, 0, fmt.Errorf("unknown RESP type: %c", data[0])
 	}
 
 }
