@@ -96,7 +96,7 @@ func decodeArray(data []byte) (interface{}, int, error) {
 	return elements, pos, nil
 }
 
-func encodeBulkString(s string) (data []byte) {
+func EncodeBulkString(s string) (data []byte) {
 	length := len(s)
 	res := fmt.Sprintf("$%d\r\n%s\r\n", length, s)
 

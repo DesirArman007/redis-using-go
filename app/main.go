@@ -14,7 +14,6 @@ var _ = net.Listen
 var _ = os.Exit
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
@@ -65,7 +64,8 @@ func handleConn(conn net.Conn) {
 			if len(args) >= 2 {
 				value, ok := args[1].(string)
 				if ok {
-					resp := fmt.Sprintf("$%d\r\n%s\r\n", len(value), value)
+					resp := utils.EncodeBulkString(value)
+					// resp := fmt.Sprintf("$%d\r\n%s\r\n", len(value), value)
 					conn.Write([]byte(resp))
 				}
 			}
