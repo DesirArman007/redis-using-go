@@ -1,33 +1,66 @@
 [![progress-banner](https://backend.codecrafters.io/progress/redis/b5d213e6-c7f2-4be8-9714-1b64ed7cd957)](https://app.codecrafters.io/users/DesirArman007?r=2qF)
 
-This is a starting point for Go solutions to the
-["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
+# Build Your Own Redis (Go)
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+This repository contains my in-progress solution to the
+[CodeCrafters Build Your Own Redis challenge](https://codecrafters.io/challenges/redis).
+The challenge is to build a Redis server step by step, learning about TCP
+servers, the Redis protocol (RESP), and the features Redis provides.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+The implementation currently covers the early stages:
 
-# Passing the first stage
+- `PING` - responds with `PONG`
+- `ECHO <message>` - returns the message
 
-The entry point for your Redis implementation is in `app/main.go`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
+This is not a complete Redis implementation. More commands and features will
+be added as I progress through the challenge stages.
 
-```sh
-codecrafters submit
+## Requirements
+
+- Go 1.27
+
+## Run locally
+
+From the project directory, start the server:
+
+```powershell
+go run ./app
 ```
 
-That's all!
+Or, in Bash or WSL, use the provided launcher:
 
-# Stage 2 & beyond
+```sh
+./your_program.sh
+```
 
-Note: This section is for stages 2 and beyond.
+The server listens on `127.0.0.1:6379`. Keep this terminal open while testing.
+Press `Ctrl+C` to stop it.
 
-1. Ensure you have `go (1.27)` installed locally
-1. Run `./your_program.sh` to run your Redis server, which is implemented in
-   `app/main.go`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+## Test with redis-cli
+
+In a second terminal, run:
+
+```sh
+redis-cli -h 127.0.0.1 -p 6379 PING
+redis-cli -h 127.0.0.1 -p 6379 ECHO hello
+```
+
+Expected output:
+
+```text
+PONG
+"hello"
+```
+
+You can also verify that the TCP port is accepting connections in PowerShell:
+
+```powershell
+Test-NetConnection 127.0.0.1 -Port 6379
+```
+
+## Run the test suite
+
+```sh
+go test ./...
+```
+
