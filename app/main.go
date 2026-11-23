@@ -83,7 +83,7 @@ func handleConn(conn net.Conn) {
 
 		case "SET":
 			store[args[1].(string)] = args[2].(string)
-			conn.Write(utils.EncodeBulkString("OK"))
+			conn.Write([]byte("OK"))
 
 		case "GET":
 			if args[1].(string) == store[args[1].(string)] {
