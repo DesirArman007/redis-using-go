@@ -86,9 +86,11 @@ func handleConn(conn net.Conn) {
 			conn.Write([]byte("+OK\r\n"))
 
 		case "GET":
-			if args[1].(string) == store[args[1].(string)] {
-				conn.Write([]byte(utils.EncodeBulkString(store[args[1].(string)])))
+			key, ok := args[1].(string)
+			if !ok {
+				continue
 			}
+			conn.Write([]byte(utils.EncodeBulkString(store[key])))
 		}
 
 	}
