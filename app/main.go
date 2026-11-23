@@ -90,7 +90,11 @@ func handleConn(conn net.Conn) {
 			if !ok {
 				continue
 			}
-			conn.Write([]byte(utils.EncodeBulkString(store[key])))
+			val, exists := store[key]
+			if !exists {
+				continue
+			}
+			conn.Write([]byte(utils.EncodeBulkString(val)))
 		}
 
 	}
