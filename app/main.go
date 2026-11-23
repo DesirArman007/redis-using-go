@@ -39,21 +39,32 @@ func handleConn(conn net.Conn) {
 	defer conn.Close()
 
 	buf := make([]byte, 1024)
+
+	var (
+		//Your map is defined as map[string]string, which strictly requires a string key and a string value. If you try to skip .(string):
+		store = make(map[string]string)
+	)
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
 			return
 		}
 
+		// takes the value out of the buffer
 		val, err := utils.Decode(buf[:n])
 		if err != nil {
 			return
 		}
+
+		// utils.Decode returns interface{} because RESP can be any type (string, int, array, etc.).
+		// A RESP array decodes to []interface{} (not []string) since its elements can be mixed types,
+		// so we type-assert it to a slice first, then assert each element (like args[0]) to string.
 		args, ok := val.([]interface{})
 		if !ok || len(args) == 0 {
 			return
 		}
 
+		// Extract the command name (first element) as a string
 		cmd, ok := args[0].(string)
 
 		_ = buf[:n]
@@ -68,6 +79,15 @@ func handleConn(conn net.Conn) {
 					// resp := fmt.Sprintf("$%d\r\n%s\r\n", len(value), value)
 					conn.Write([]byte(resp))
 				}
+			}
+
+		case "SET":
+			store[args[1].(string)] = args[2].(string)
+			conn.Write(utils.EncodeBulkString("OK"))
+
+		case "GET":
+			if args[1].(string) == store[args[1].(string)] {
+				conn.Write(utils.EncodeBulkString(store[args[1].(string)]))
 			}
 		}
 
