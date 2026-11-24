@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/app/utils"
 )
@@ -40,10 +42,16 @@ func handleConn(conn net.Conn) {
 
 	buf := make([]byte, 1024)
 
+	type Entry struct {
+		Value     string
+		ExpiresAt time.Time // zero value means no expiry
+	}
+
 	var (
 		//Your map is defined as map[string]string, which strictly requires a string key and a string value. If you try to skip .(string):
-		store = make(map[string]string)
+		store = make(map[string]Entry)
 	)
+
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
@@ -66,6 +74,12 @@ func handleConn(conn net.Conn) {
 
 		// Extract the command name (first element) as a string
 		cmd, ok := args[0].(string)
+		value, ok2 := args[1].(string)
+		if !ok || !ok2 {
+			continue
+		}
+
+		var expiresAt time.Time
 
 		_ = buf[:n]
 		switch strings.ToUpper(cmd) {
@@ -82,19 +96,45 @@ func handleConn(conn net.Conn) {
 			}
 
 		case "SET":
-			store[args[1].(string)] = args[2].(string)
+			opt, ok3 := args[3].(string)
+			ttlStr, ok4 := args[4].(string)
+			if ok3 && ok4 {
+				ttl, err := strconv.Atoi(ttlStr)
+				if err == nil {
+					switch strings.ToUpper(opt) {
+					case "PX":
+						expiresAt = time.Now().Add(time.Duration(ttl) * time.Millisecond)
+
+					case "TX":
+						expiresAt = time.Now().Add(time.Duration(ttl) * time.Second)
+					}
+				}
+
+			}
+			store[cmd] = Entry{Value: value, ExpiresAt: expiresAt}
 			conn.Write([]byte("+OK\r\n"))
 
 		case "GET":
+			if len(args) < 2 {
+				conn.Write([]byte("-ERR wrong number of arguments\r\n"))
+				continue
+			}
 			key, ok := args[1].(string)
 			if !ok {
 				continue
 			}
-			val, exists := store[key]
+			entry, exists := store[key]
 			if !exists {
+				conn.Write([]byte("$-1\r\n"))
 				continue
 			}
-			conn.Write([]byte(utils.EncodeBulkString(val)))
+
+			if !entry.ExpiresAt.IsZero() && time.Now().After(entry.ExpiresAt) {
+				delete(store, key)
+				conn.Write([]byte("$-1\r\n"))
+				continue
+			}
+			conn.Write([]byte(utils.EncodeBulkString(entry.Value)))
 		}
 
 	}
