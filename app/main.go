@@ -94,6 +94,7 @@ func handleConn(conn net.Conn) {
 			}
 
 		case "SET":
+
 			key, ok1 := args[1].(string)
 			value, ok2 := args[2].(string)
 			if !ok1 || !ok2 {
@@ -102,20 +103,22 @@ func handleConn(conn net.Conn) {
 
 			var expiresAt time.Time
 
-			opt, ok3 := args[3].(string)
-			ttlStr, ok4 := args[4].(string)
-			if ok3 && ok4 {
-				ttl, err := strconv.Atoi(ttlStr)
-				if err == nil {
-					switch strings.ToUpper(opt) {
-					case "PX":
-						expiresAt = time.Now().Add(time.Duration(ttl) * time.Millisecond)
+			if len(args) >= 5 {
+				opt, ok3 := args[3].(string)
+				ttlStr, ok4 := args[4].(string)
+				if ok3 && ok4 {
+					ttl, err := strconv.Atoi(ttlStr)
+					if err == nil {
+						switch strings.ToUpper(opt) {
+						case "PX":
+							expiresAt = time.Now().Add(time.Duration(ttl) * time.Millisecond)
 
-					case "EX":
-						expiresAt = time.Now().Add(time.Duration(ttl) * time.Second)
+						case "EX":
+							expiresAt = time.Now().Add(time.Duration(ttl) * time.Second)
+						}
 					}
-				}
 
+				}
 			}
 			store[key] = Entry{Value: value, ExpiresAt: expiresAt}
 			conn.Write([]byte("+OK\r\n"))
