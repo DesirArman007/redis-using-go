@@ -15,6 +15,16 @@ import (
 var _ = net.Listen
 var _ = os.Exit
 
+type Entry struct {
+	Value     string
+	ExpiresAt time.Time // zero value means no expiry
+}
+
+var (
+	//Your map is defined as map[string]string, which strictly requires a string key and a string value. If you try to skip .(string):
+	store = make(map[string]Entry)
+)
+
 func main() {
 	fmt.Println("Logs from your program will appear here!")
 
@@ -41,16 +51,6 @@ func handleConn(conn net.Conn) {
 	defer conn.Close()
 
 	buf := make([]byte, 1024)
-
-	type Entry struct {
-		Value     string
-		ExpiresAt time.Time // zero value means no expiry
-	}
-
-	var (
-		//Your map is defined as map[string]string, which strictly requires a string key and a string value. If you try to skip .(string):
-		store = make(map[string]Entry)
-	)
 
 	for {
 		n, err := conn.Read(buf)
@@ -111,7 +111,7 @@ func handleConn(conn net.Conn) {
 					case "PX":
 						expiresAt = time.Now().Add(time.Duration(ttl) * time.Millisecond)
 
-					case "TX":
+					case "EX":
 						expiresAt = time.Now().Add(time.Duration(ttl) * time.Second)
 					}
 				}
