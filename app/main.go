@@ -73,13 +73,10 @@ func handleConn(conn net.Conn) {
 		}
 
 		// Extract the command name (first element) as a string
-		cmd, ok1 := args[0].(string)
-		key, ok2 := args[1].(string)
-		if !ok1 || !ok2 {
+		cmd, ok := args[0].(string)
+		if !ok {
 			continue
 		}
-
-		var expiresAt time.Time
 
 		_ = buf[:n]
 		switch strings.ToUpper(cmd) {
@@ -97,7 +94,14 @@ func handleConn(conn net.Conn) {
 			}
 
 		case "SET":
-			value := args[2].(string)
+			key, ok1 := args[1].(string)
+			value, ok2 := args[2].(string)
+			if !ok1 || !ok2 {
+				continue
+			}
+
+			var expiresAt time.Time
+
 			opt, ok3 := args[3].(string)
 			ttlStr, ok4 := args[4].(string)
 			if ok3 && ok4 {
