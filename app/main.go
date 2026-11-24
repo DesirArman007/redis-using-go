@@ -73,9 +73,9 @@ func handleConn(conn net.Conn) {
 		}
 
 		// Extract the command name (first element) as a string
-		cmd, ok := args[0].(string)
-		value, ok2 := args[1].(string)
-		if !ok || !ok2 {
+		cmd, ok1 := args[0].(string)
+		key, ok2 := args[1].(string)
+		if !ok1 || !ok2 {
 			continue
 		}
 
@@ -85,6 +85,7 @@ func handleConn(conn net.Conn) {
 		switch strings.ToUpper(cmd) {
 		case "PING":
 			conn.Write([]byte("+PONG\r\n"))
+
 		case "ECHO":
 			if len(args) >= 2 {
 				value, ok := args[1].(string)
@@ -96,6 +97,7 @@ func handleConn(conn net.Conn) {
 			}
 
 		case "SET":
+			value := args[2].(string)
 			opt, ok3 := args[3].(string)
 			ttlStr, ok4 := args[4].(string)
 			if ok3 && ok4 {
@@ -111,7 +113,7 @@ func handleConn(conn net.Conn) {
 				}
 
 			}
-			store[cmd] = Entry{Value: value, ExpiresAt: expiresAt}
+			store[key] = Entry{Value: value, ExpiresAt: expiresAt}
 			conn.Write([]byte("+OK\r\n"))
 
 		case "GET":
