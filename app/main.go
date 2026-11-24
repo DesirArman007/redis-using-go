@@ -11,10 +11,6 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/utils"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
-var _ = net.Listen
-var _ = os.Exit
-
 type Entry struct {
 	Value     string
 	ExpiresAt time.Time // zero value means no expiry
@@ -53,12 +49,17 @@ func handleConn(conn net.Conn) {
 	buf := make([]byte, 1024)
 
 	for {
+
+		// reads the buffer
 		n, err := conn.Read(buf)
 		if err != nil {
 			return
 		}
 
 		// takes the value out of the buffer
+		// using the array decoder to decode the values
+		// through the Custom resp parser in resp.go
+		// decode() -> decoderesp() -> decodeArray()
 		val, err := utils.Decode(buf[:n])
 		if err != nil {
 			return
@@ -79,10 +80,16 @@ func handleConn(conn net.Conn) {
 		}
 
 		_ = buf[:n]
+
+		// swtich-case start, here converting all commands
+		//of switch to string in uppsercase to pass on to match the cases
 		switch strings.ToUpper(cmd) {
+
+		// returns a bulkstring of response format
 		case "PING":
 			conn.Write([]byte("+PONG\r\n"))
 
+		// echo "string", it reads the string and then return the coded string
 		case "ECHO":
 			if len(args) >= 2 {
 				value, ok := args[1].(string)
