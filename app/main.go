@@ -121,6 +121,7 @@ func handleConn(conn net.Conn) {
 				}
 			}
 			store[key] = Entry{Value: value, ExpiresAt: expiresAt}
+
 			conn.Write([]byte("+OK\r\n"))
 
 		case "GET":
